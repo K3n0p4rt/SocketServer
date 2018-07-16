@@ -20,7 +20,7 @@ struct client {
 	std::vector<client> friends;
 	int refs;
 
-	client(int sockfd, std::string name) : refs(0)
+	client(int sockfd, std::string name) : refs(1)
 	{
 		this->sockfd = sockfd;
 		this->name = name;
@@ -62,7 +62,7 @@ void readAndWrite(int sockfd, client* &thisClient) {
 	int newsockfd = thisClient->sockfd;
 	outsocks_mtx.unlock();
 
-	fprintf(stderr,"New client joined\n");
+	cout << "New client joined\n";
 
 	// while (read(newsockfd, buffer, 18) > 0) {
 
@@ -91,7 +91,7 @@ void readAndWrite(int sockfd, client* &thisClient) {
 
 	while (1) {
 
-		bzero(buffer,256);
+		std::fill_n(buffer, 256, '\0');
 
 		n = read(newsockfd,buffer,255);
 
@@ -99,7 +99,7 @@ void readAndWrite(int sockfd, client* &thisClient) {
 			error("ERROR reading from socket");
 		}
 		
-		printf("Here is the message: %s\n",buffer);
+		cout << "Here is the message: " + buffer;
 
 		outsocks_mtx.lock();
 		for (int i = 0; i < outsocks.size(); i++) {
@@ -124,26 +124,26 @@ void readAndWrite(int sockfd, client* &thisClient) {
 
 void manageClient(int sockfd, int newsockfd) {
 
-	fprintf(stderr,"Started Managing\n");
+	cout << "Started Managing\n";
 
 	bool clientExist = false;
 	client * thisClient;
 
-	fprintf(stderr,"Instatiated Vars\n");
+	cout << "Instatiated Vars\n";
 
 
 	//Check weather client has logged in b4
 	outsocks_mtx.lock();
 	for(int i = 0; i < outsocks.size(); i++) {
 		if(outsocks[i]->sockfd == newsockfd) {
-			printf("Client already exist");
+			cout << "Client already exist";
 			clientExist = true;
 			thisClient = outsocks[i];
 		}
 	}
 	outsocks_mtx.unlock();
 
-	fprintf(stderr,"Checked for existence\n");
+	cout << "Checked for existence\n";
 
 	//Depending on weather client exist:
 	//		Welcome client back
@@ -170,7 +170,7 @@ void manageClient(int sockfd, int newsockfd) {
 		}
 	}
 
-	fprintf(stderr,"Dealt with existence\n");
+	cout << "Dealt with existence\n";
 
 	//Try to manage clients where: 
 	//		if connectedSocks > maxSocks close connection to client
@@ -183,7 +183,7 @@ void manageClient(int sockfd, int newsockfd) {
 		// thisClient->inc_ref();	
 	outsocks_mtx.unlock();
 
-	fprintf(stderr,"Assgined client\n");
+	cout << "Assgined client\n";
 
 	if (canConnect) {
 		readAndWrite(sockfd,thisClient);
@@ -192,7 +192,7 @@ void manageClient(int sockfd, int newsockfd) {
 		//TODO handle que of clients waiting to get in;
 	}
 
-	fprintf(stderr,"Handled client\n");
+	cout << "Handled client\n";
 
 	outsocks_mtx.lock();
 		connectedSocks --;
@@ -205,7 +205,7 @@ void manageClient(int sockfd, int newsockfd) {
 		}
 	outsocks_mtx.unlock();
 
-	fprintf(stderr,"Client left\n");	
+	cout << "Client left\n";	
 
 	return;
 }
@@ -218,7 +218,7 @@ int main(int argc, char *argv[]) {
 	connectedSocks = 0;
 	std::vector<std::thread> threads;
 
-	fprintf(stderr,"Starting server...\n");
+	cout << "Starting server...\n";
 
 	if (argc < 2) {
 		fprintf(stderr, "ERROR: no port provided\n");

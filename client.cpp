@@ -41,7 +41,7 @@ void readLoop(int sockfd) {
 	char buffer[256];
 
 	while (1) {
-		n = read(sockfd, buffer, 255) > 0;
+		n = read(sockfd, buffer, 255);
 		if (strlen(buffer) > 0) {
 			printf("%s\n",buffer);
 			std::fill_n(buffer, 256, '\0');
