@@ -28,11 +28,11 @@ void readAndWrite(int sockfd, int newsockfd) {
 	outsocks.push_back(newsockfd);
 	outsocks_mtx.unlock();
 
-	cout << "New client joined\n");
+	std::cout << "New client joined\n";
 
 	while (read(newsockfd, buffer, 255) > 0) {
 
-		cout << "Here is the message: " << buffer;
+		std::cout << "Here is the message: " << buffer;
 		bool didWrite = false;
 
 		outsocks_mtx.lock();
@@ -56,6 +56,7 @@ void readAndWrite(int sockfd, int newsockfd) {
 	for (int i = 0; i < outsocks.size(); i++) {
 		if (outsocks[i] == newsockfd) {
 			outsocks.erase(outsocks.begin()+i);
+			close(newsockfd);
 		}
 	}
 	outsocks_mtx.unlock();
@@ -94,7 +95,7 @@ int main(int argc, char *argv[]) {
 	connectedSocks = 0;
 	std::vector<std::thread> threads;
 
-	cout << "Starting server...\n";
+	std::cout << "Starting server...\n";
 
 	if (argc < 2) {
 		fprintf(stderr, "ERROR: no port provided\n");

@@ -15,7 +15,7 @@ ${HOST}                localhost
 ${USERNAME}            root
 ${PASSWORD}            screencast
 ${SER_PORT}            4000
-${VIR_PORT}            6000
+${VIR_PORT}            6969
 ${IP_ADD}              172.17.0.6
 
 *** Test Cases ***
@@ -38,6 +38,7 @@ Client Join Till Server Capacity
     [Documentation]    ...
     Switch Connection  Client_2
     Write              ./run_client ${IP_ADD} ${VIR_PORT}
+    Switch Connection  Server
     ${output}=         Read Until         joined
     Should End With    ${output}          New client joined
     Switch Connection  Client_3
@@ -105,11 +106,11 @@ Open Connection And Login
    Open Connection     ${HOST}            port=${SER_PORT}   alias=Server  
    Login               ${USERNAME}        ${PASSWORD}
    Write               cd /git
-   Execute Command     g++ -std=c++11 -pthread server.cpp -o run_server 
+   Write               g++ -std=c++11 -pthread server.cpp -o run_server 
    Open Connection     ${HOST}            port=3000          alias=Client_1
    Login               ${USERNAME}        ${PASSWORD}
    Write               cd /git
-   Execute Command     g++ -std=c++11 -pthread client.cpp -o run_client
+   Write               g++ -std=c++11 -pthread client.cpp -o run_client
    Open Connection     ${HOST}            port=6000          alias=Client_2
    Login               ${USERNAME}        ${PASSWORD}
    Write               cd /git
