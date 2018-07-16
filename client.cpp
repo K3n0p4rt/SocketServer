@@ -28,25 +28,30 @@ void writeLoop(int sockfd) {
 
 	while (1) {
 		fgets(buffer, 255, stdin);
-		write(sockfd, buffer, strlen(buffer));
+		n = write(sockfd, buffer, strlen(buffer));
 		std::fill_n(buffer, 256, '\0');
+		if (n < 0) {
+			error("ERROR writing to socket",sockfd);
+		}
 	}
-
-	error("ERROR writing to socket",sockfd);
 }
 
 void readLoop(int sockfd) {
 
 	char buffer[256];
 
-	while (read(sockfd, buffer, 255) >= 0) {
+	while (1) {
+		n = read(sockfd, buffer, 255) > 0;
 		if (strlen(buffer) > 0) {
 			printf("%s\n",buffer);
 			std::fill_n(buffer, 256, '\0');
 		}
+		if (n < 0) {
+			error("ERROR reading from socket",sockfd);
+		}
 	}
 
-	error("ERROR reading from socket",sockfd);
+	
 }
 
 
