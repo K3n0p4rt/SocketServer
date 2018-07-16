@@ -18,7 +18,6 @@ int maxSocks;
 
 void error(char *msg) {
 	perror(msg);
-	exit(1);
 }
 
 void readAndWrite(int sockfd, int newsockfd) {
@@ -29,11 +28,11 @@ void readAndWrite(int sockfd, int newsockfd) {
 	outsocks.push_back(newsockfd);
 	outsocks_mtx.unlock();
 
-	fprintf(stderr,"New client joined\n");
+	cout << "New client joined\n");
 
 	while (read(newsockfd, buffer, 255) > 0) {
 
-		printf("Here is the message: %s\n", buffer);
+		cout << "Here is the message: " << buffer;
 		bool didWrite = false;
 
 		outsocks_mtx.lock();
@@ -95,11 +94,11 @@ int main(int argc, char *argv[]) {
 	connectedSocks = 0;
 	std::vector<std::thread> threads;
 
-	fprintf(stderr,"Starting server...\n");
+	cout << "Starting server...\n";
 
 	if (argc < 2) {
 		fprintf(stderr, "ERROR: no port provided\n");
-		exit(1);
+		exit(1); 
 	}
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);

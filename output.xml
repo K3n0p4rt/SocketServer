@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generated="20180716 16:00:11.619" generator="Robot 3.0.4 (Python 2.7.10 on darwin)">
+<suite source="/Users/kenrickyap/Desktop/SocketServer/SimpleAppTest.robot" id="s1" name="SimpleAppTest">
+<kw type="setup" name="Open Connection And Login">
+<kw name="Open Connection" library="SSHLibrary">
+<doc>Opens a new SSH connection to the given ``host`` and ``port``.</doc>
+<arguments>
+<arg>${HOST}</arg>
+<arg>port=${SER_PORT}</arg>
+<arg>alias=Server</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:11.805" starttime="20180716 16:00:11.805"></status>
+</kw>
+<kw name="Login" library="SSHLibrary">
+<doc>Logs into the SSH server with the given ``username`` and ``password``.</doc>
+<arguments>
+<arg>${USERNAME}</arg>
+<arg>${PASSWORD}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:11.806" level="INFO">Logging into 'localhost:4000' as 'root'.</msg>
+<msg timestamp="20180716 16:00:13.021" level="INFO">Read output: Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.9.87-linuxkit-aufs x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+Last login: Mon Jul 16 07:58:45 2018 from 172.17.0.1
+root@b61effe776c4:~#</msg>
+<status status="PASS" endtime="20180716 16:00:13.022" starttime="20180716 16:00:11.805"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>cd /git</arg>
+</arguments>
+<msg timestamp="20180716 16:00:13.030" level="INFO">cd /git</msg>
+<status status="PASS" endtime="20180716 16:00:13.030" starttime="20180716 16:00:13.022"></status>
+</kw>
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>g++ -std=c++11 -pthread server.cpp -o run_server</arg>
+</arguments>
+<msg timestamp="20180716 16:00:13.031" level="INFO">Executing command 'g++ -std=c++11 -pthread server.cpp -o run_server'.</msg>
+<msg timestamp="20180716 16:00:13.047" level="INFO">Command exited with return code 4.</msg>
+<status status="PASS" endtime="20180716 16:00:13.047" starttime="20180716 16:00:13.031"></status>
+</kw>
+<kw name="Open Connection" library="SSHLibrary">
+<doc>Opens a new SSH connection to the given ``host`` and ``port``.</doc>
+<arguments>
+<arg>${HOST}</arg>
+<arg>port=3000</arg>
+<arg>alias=Client_1</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:13.049" starttime="20180716 16:00:13.048"></status>
+</kw>
+<kw name="Login" library="SSHLibrary">
+<doc>Logs into the SSH server with the given ``username`` and ``password``.</doc>
+<arguments>
+<arg>${USERNAME}</arg>
+<arg>${PASSWORD}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:13.050" level="INFO">Logging into 'localhost:3000' as 'root'.</msg>
+<msg timestamp="20180716 16:00:14.184" level="INFO">Read output: Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.9.87-linuxkit-aufs x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+Last login: Mon Jul 16 07:58:47 2018 from 172.17.0.1
+root@c6970c3f03f7:~#</msg>
+<status status="PASS" endtime="20180716 16:00:14.185" starttime="20180716 16:00:13.049"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>cd /git</arg>
+</arguments>
+<msg timestamp="20180716 16:00:14.191" level="INFO">cd /git</msg>
+<status status="PASS" endtime="20180716 16:00:14.191" starttime="20180716 16:00:14.185"></status>
+</kw>
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>g++ -std=c++11 -pthread client.cpp -o run_client</arg>
+</arguments>
+<msg timestamp="20180716 16:00:14.192" level="INFO">Executing command 'g++ -std=c++11 -pthread client.cpp -o run_client'.</msg>
+<msg timestamp="20180716 16:00:14.208" level="INFO">Command exited with return code 4.</msg>
+<status status="PASS" endtime="20180716 16:00:14.208" starttime="20180716 16:00:14.192"></status>
+</kw>
+<kw name="Open Connection" library="SSHLibrary">
+<doc>Opens a new SSH connection to the given ``host`` and ``port``.</doc>
+<arguments>
+<arg>${HOST}</arg>
+<arg>port=6000</arg>
+<arg>alias=Client_2</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:14.209" starttime="20180716 16:00:14.208"></status>
+</kw>
+<kw name="Login" library="SSHLibrary">
+<doc>Logs into the SSH server with the given ``username`` and ``password``.</doc>
+<arguments>
+<arg>${USERNAME}</arg>
+<arg>${PASSWORD}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:14.210" level="INFO">Logging into 'localhost:6000' as 'root'.</msg>
+<msg timestamp="20180716 16:00:15.342" level="INFO">Read output: Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.9.87-linuxkit-aufs x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+Last login: Mon Jul 16 07:58:48 2018 from 172.17.0.1
+root@a6f06fd8065a:~#</msg>
+<status status="PASS" endtime="20180716 16:00:15.343" starttime="20180716 16:00:14.209"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>cd /git</arg>
+</arguments>
+<msg timestamp="20180716 16:00:15.346" level="INFO">cd /git</msg>
+<status status="PASS" endtime="20180716 16:00:15.346" starttime="20180716 16:00:15.343"></status>
+</kw>
+<kw name="Open Connection" library="SSHLibrary">
+<doc>Opens a new SSH connection to the given ``host`` and ``port``.</doc>
+<arguments>
+<arg>${HOST}</arg>
+<arg>port=5000</arg>
+<arg>alias=Client_3</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:15.347" starttime="20180716 16:00:15.346"></status>
+</kw>
+<kw name="Login" library="SSHLibrary">
+<doc>Logs into the SSH server with the given ``username`` and ``password``.</doc>
+<arguments>
+<arg>${USERNAME}</arg>
+<arg>${PASSWORD}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:15.348" level="INFO">Logging into 'localhost:5000' as 'root'.</msg>
+<msg timestamp="20180716 16:00:16.456" level="INFO">Read output: Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.9.87-linuxkit-aufs x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+Last login: Mon Jul 16 07:58:49 2018 from 172.17.0.1
+root@08ea329edb2b:~#</msg>
+<status status="PASS" endtime="20180716 16:00:16.456" starttime="20180716 16:00:15.347"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>cd /git</arg>
+</arguments>
+<msg timestamp="20180716 16:00:16.464" level="INFO">cd /git</msg>
+<status status="PASS" endtime="20180716 16:00:16.464" starttime="20180716 16:00:16.457"></status>
+</kw>
+<kw name="Open Connection" library="SSHLibrary">
+<doc>Opens a new SSH connection to the given ``host`` and ``port``.</doc>
+<arguments>
+<arg>${HOST}</arg>
+<arg>port=2000</arg>
+<arg>alias=Client_4</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:16.465" starttime="20180716 16:00:16.464"></status>
+</kw>
+<kw name="Login" library="SSHLibrary">
+<doc>Logs into the SSH server with the given ``username`` and ``password``.</doc>
+<arguments>
+<arg>${USERNAME}</arg>
+<arg>${PASSWORD}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:16.466" level="INFO">Logging into 'localhost:2000' as 'root'.</msg>
+<msg timestamp="20180716 16:00:17.588" level="INFO">Read output: Welcome to Ubuntu 16.04.4 LTS (GNU/Linux 4.9.87-linuxkit-aufs x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/advantage
+Last login: Mon Jul 16 07:58:50 2018 from 172.17.0.1
+root@46e0928a7de2:~#</msg>
+<status status="PASS" endtime="20180716 16:00:17.589" starttime="20180716 16:00:16.465"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>cd /git</arg>
+</arguments>
+<msg timestamp="20180716 16:00:17.593" level="INFO">cd /git</msg>
+<status status="PASS" endtime="20180716 16:00:17.593" starttime="20180716 16:00:17.589"></status>
+</kw>
+<status status="PASS" endtime="20180716 16:00:17.593" starttime="20180716 16:00:11.804"></status>
+</kw>
+<test id="s1-t1" name="Execute Command And Verify Output">
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>echo Hello SSHLibrary!</arg>
+</arguments>
+<assign>
+<var>${output}</var>
+</assign>
+<msg timestamp="20180716 16:00:17.595" level="INFO">Executing command 'echo Hello SSHLibrary!'.</msg>
+<msg timestamp="20180716 16:00:17.609" level="INFO">Command exited with return code 0.</msg>
+<msg timestamp="20180716 16:00:17.609" level="INFO">${output} = Hello SSHLibrary!</msg>
+<status status="PASS" endtime="20180716 16:00:17.609" starttime="20180716 16:00:17.595"></status>
+</kw>
+<kw name="Should Be Equal" library="BuiltIn">
+<doc>Fails if the given objects are unequal.</doc>
+<arguments>
+<arg>${output}</arg>
+<arg>Hello SSHLibrary!</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:17.610" starttime="20180716 16:00:17.609"></status>
+</kw>
+<doc>Execute Command can be used to run commands on the remote machine.
+The keyword returns the standard output by default.</doc>
+<status status="PASS" endtime="20180716 16:00:17.610" critical="yes" starttime="20180716 16:00:17.594"></status>
+</test>
+<test id="s1-t2" name="Start Server">
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Server</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:17.611" starttime="20180716 16:00:17.611"></status>
+</kw>
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>hostname -I</arg>
+</arguments>
+<assign>
+<var>${IP_ADD}</var>
+</assign>
+<msg timestamp="20180716 16:00:17.612" level="INFO">Executing command 'hostname -I'.</msg>
+<msg timestamp="20180716 16:00:17.626" level="INFO">Command exited with return code 0.</msg>
+<msg timestamp="20180716 16:00:17.626" level="INFO">${IP_ADD} = 172.17.0.6 </msg>
+<status status="PASS" endtime="20180716 16:00:17.626" starttime="20180716 16:00:17.611"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>./run_server ${VIR_PORT}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:17.633" level="INFO">root@b61effe776c4:/git# ./run_server 6000</msg>
+<status status="PASS" endtime="20180716 16:00:17.633" starttime="20180716 16:00:17.627"></status>
+</kw>
+<kw name="Read Until" library="SSHLibrary">
+<doc>Consumes and returns the server output until ``expected`` is encountered.</doc>
+<arguments>
+<arg>...</arg>
+</arguments>
+<assign>
+<var>${output}</var>
+</assign>
+<msg timestamp="20180716 16:00:20.637" level="FAIL">No match found for '...' in 3 seconds
+Output:
+-bash: ./run_server: No such file or directory
+root@b61effe776c4:/git# .</msg>
+<status status="FAIL" endtime="20180716 16:00:20.637" starttime="20180716 16:00:17.634"></status>
+</kw>
+<status status="FAIL" endtime="20180716 16:00:20.637" critical="yes" starttime="20180716 16:00:17.610">No match found for '...' in 3 seconds
+Output:
+-bash: ./run_server: No such file or directory
+root@b61effe776c4:/git# .</status>
+</test>
+<test id="s1-t3" name="Join With One Client">
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_1</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:20.639" starttime="20180716 16:00:20.638"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>./run_client ${IP_ADD} ${VIR_PORT}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:20.641" level="INFO">root@c6970c3f03f7:/git# ./run_client 172.17.0.6 6000</msg>
+<status status="PASS" endtime="20180716 16:00:20.642" starttime="20180716 16:00:20.639"></status>
+</kw>
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Server</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:20.643" starttime="20180716 16:00:20.642"></status>
+</kw>
+<kw name="Read Until" library="SSHLibrary">
+<doc>Consumes and returns the server output until ``expected`` is encountered.</doc>
+<arguments>
+<arg>joined</arg>
+</arguments>
+<assign>
+<var>${output}</var>
+</assign>
+<msg timestamp="20180716 16:00:23.644" level="FAIL">No match found for 'joined' in 3 seconds
+Output:
+.</msg>
+<status status="FAIL" endtime="20180716 16:00:23.644" starttime="20180716 16:00:20.643"></status>
+</kw>
+<status status="FAIL" endtime="20180716 16:00:23.644" critical="yes" starttime="20180716 16:00:20.638">No match found for 'joined' in 3 seconds
+Output:
+.</status>
+</test>
+<test id="s1-t4" name="Client Join Till Server Capacity">
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_2</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:23.645" starttime="20180716 16:00:23.645"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>./run_client ${IP_ADD} ${VIR_PORT}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:23.651" level="INFO">root@a6f06fd8065a:/git# ./run_client 172.17.0.6 6000</msg>
+<status status="PASS" endtime="20180716 16:00:23.651" starttime="20180716 16:00:23.646"></status>
+</kw>
+<kw name="Read Until" library="SSHLibrary">
+<doc>Consumes and returns the server output until ``expected`` is encountered.</doc>
+<arguments>
+<arg>joined</arg>
+</arguments>
+<assign>
+<var>${output}</var>
+</assign>
+<msg timestamp="20180716 16:00:26.652" level="FAIL">No match found for 'joined' in 3 seconds
+Output:
+-bash: ./run_client: No such file or directory
+root@a6f06fd8065a:/git# .</msg>
+<status status="FAIL" endtime="20180716 16:00:26.652" starttime="20180716 16:00:23.651"></status>
+</kw>
+<status status="FAIL" endtime="20180716 16:00:26.653" critical="yes" starttime="20180716 16:00:23.644">No match found for 'joined' in 3 seconds
+Output:
+-bash: ./run_client: No such file or directory
+root@a6f06fd8065a:/git# .</status>
+</test>
+<test id="s1-t5" name="Client Join At Max Server Capacity">
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_4</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:26.655" starttime="20180716 16:00:26.654"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>./run_client ${IP_ADD} ${VIR_PORT}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:26.660" level="INFO">root@46e0928a7de2:/git# ./run_client 172.17.0.6 6000</msg>
+<status status="PASS" endtime="20180716 16:00:26.660" starttime="20180716 16:00:26.655"></status>
+</kw>
+<kw name="Read Until" library="SSHLibrary">
+<doc>Consumes and returns the server output until ``expected`` is encountered.</doc>
+<arguments>
+<arg>later</arg>
+</arguments>
+<assign>
+<var>${output}</var>
+</assign>
+<msg timestamp="20180716 16:00:29.662" level="FAIL">No match found for 'later' in 3 seconds
+Output:
+-bash: ./run_client: No such file or directory
+root@46e0928a7de2:/git# .</msg>
+<status status="FAIL" endtime="20180716 16:00:29.662" starttime="20180716 16:00:26.661"></status>
+</kw>
+<status status="FAIL" endtime="20180716 16:00:29.663" critical="yes" starttime="20180716 16:00:26.653">No match found for 'later' in 3 seconds
+Output:
+-bash: ./run_client: No such file or directory
+root@46e0928a7de2:/git# .</status>
+</test>
+<test id="s1-t6" name="Client Leave and Join">
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_3</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:29.664" starttime="20180716 16:00:29.664"></status>
+</kw>
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>pkill -15 run</arg>
+</arguments>
+<msg timestamp="20180716 16:00:29.664" level="INFO">Executing command 'pkill -15 run'.</msg>
+<msg timestamp="20180716 16:00:29.678" level="INFO">Command exited with return code 1.</msg>
+<status status="PASS" endtime="20180716 16:00:29.679" starttime="20180716 16:00:29.664"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>./run_client ${IP_ADD} ${VIR_PORT}</arg>
+</arguments>
+<msg timestamp="20180716 16:00:29.683" level="INFO">root@08ea329edb2b:/git# ./run_client 172.17.0.6 6000</msg>
+<status status="PASS" endtime="20180716 16:00:29.684" starttime="20180716 16:00:29.679"></status>
+</kw>
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Server</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:29.685" starttime="20180716 16:00:29.684"></status>
+</kw>
+<kw name="Read Until" library="SSHLibrary">
+<doc>Consumes and returns the server output until ``expected`` is encountered.</doc>
+<arguments>
+<arg>joined</arg>
+</arguments>
+<assign>
+<var>${output}</var>
+</assign>
+<msg timestamp="20180716 16:00:32.686" level="FAIL">No match found for 'joined' in 3 seconds
+Output:
+.</msg>
+<status status="FAIL" endtime="20180716 16:00:32.686" starttime="20180716 16:00:29.685"></status>
+</kw>
+<status status="FAIL" endtime="20180716 16:00:32.687" critical="yes" starttime="20180716 16:00:29.663">No match found for 'joined' in 3 seconds
+Output:
+.</status>
+</test>
+<test id="s1-t7" name="Send And Recieve Message (Client_3)">
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_3</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:32.689" starttime="20180716 16:00:32.688"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>howdy!</arg>
+</arguments>
+<msg timestamp="20180716 16:00:32.691" level="INFO">-bash: ./run_client: No such file or directory</msg>
+<status status="PASS" endtime="20180716 16:00:32.691" starttime="20180716 16:00:32.689"></status>
+</kw>
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Server</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:32.693" starttime="20180716 16:00:32.692"></status>
+</kw>
+<kw name="Read Until" library="SSHLibrary">
+<doc>Consumes and returns the server output until ``expected`` is encountered.</doc>
+<arguments>
+<arg>!</arg>
+</arguments>
+<assign>
+<var>${output}</var>
+</assign>
+<msg timestamp="20180716 16:00:35.695" level="FAIL">No match found for '!' in 3 seconds
+Output:
+.</msg>
+<status status="FAIL" endtime="20180716 16:00:35.695" starttime="20180716 16:00:32.694"></status>
+</kw>
+<status status="FAIL" endtime="20180716 16:00:35.695" critical="yes" starttime="20180716 16:00:32.687">No match found for '!' in 3 seconds
+Output:
+.</status>
+</test>
+<test id="s1-t8" name="Send And Recieve Message (Client_1)">
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_1</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:35.697" starttime="20180716 16:00:35.697"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>I am here</arg>
+</arguments>
+<msg timestamp="20180716 16:00:35.701" level="INFO">-bash: ./run_client: No such file or directory</msg>
+<status status="PASS" endtime="20180716 16:00:35.702" starttime="20180716 16:00:35.698"></status>
+</kw>
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_3</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:35.704" starttime="20180716 16:00:35.703"></status>
+</kw>
+<kw name="Read Until" library="SSHLibrary">
+<doc>Consumes and returns the server output until ``expected`` is encountered.</doc>
+<arguments>
+<arg>here</arg>
+</arguments>
+<assign>
+<var>${output}</var>
+</assign>
+<msg timestamp="20180716 16:00:38.706" level="FAIL">No match found for 'here' in 3 seconds
+Output:
+root@08ea329edb2b:/git# howdy!
+-bash: howdy!: command not found
+root@08ea329edb2b:/git# .</msg>
+<status status="FAIL" endtime="20180716 16:00:38.706" starttime="20180716 16:00:35.705"></status>
+</kw>
+<status status="FAIL" endtime="20180716 16:00:38.707" critical="yes" starttime="20180716 16:00:35.696">No match found for 'here' in 3 seconds
+Output:
+root@08ea329edb2b:/git# howdy!
+-bash: howdy!: command not found
+root@08ea329edb2b:/git# .</status>
+</test>
+<test id="s1-t9" name="Send And Recieve Message (Client_2)">
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_2</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:38.708" starttime="20180716 16:00:38.708"></status>
+</kw>
+<kw name="Write" library="SSHLibrary">
+<doc>Writes the given ``text`` on the remote machine and appends a newline.</doc>
+<arguments>
+<arg>cry ;(</arg>
+</arguments>
+<msg timestamp="20180716 16:00:38.711" level="INFO">cry ;(</msg>
+<status status="PASS" endtime="20180716 16:00:38.711" starttime="20180716 16:00:38.708"></status>
+</kw>
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_1</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:38.712" starttime="20180716 16:00:38.711"></status>
+</kw>
+<kw name="Read Until" library="SSHLibrary">
+<doc>Consumes and returns the server output until ``expected`` is encountered.</doc>
+<arguments>
+<arg>;(</arg>
+</arguments>
+<assign>
+<var>${output}</var>
+</assign>
+<msg timestamp="20180716 16:00:41.713" level="FAIL">No match found for ';(' in 3 seconds
+Output:
+root@c6970c3f03f7:/git# I am here
+-bash: I: command not found
+root@c6970c3f03f7:/git# .</msg>
+<status status="FAIL" endtime="20180716 16:00:41.713" starttime="20180716 16:00:38.712"></status>
+</kw>
+<status status="FAIL" endtime="20180716 16:00:41.714" critical="yes" starttime="20180716 16:00:38.707">No match found for ';(' in 3 seconds
+Output:
+root@c6970c3f03f7:/git# I am here
+-bash: I: command not found
+root@c6970c3f03f7:/git# .</status>
+</test>
+<kw type="teardown" name="Shutdown Application And Close All Connections">
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_4</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:41.716" starttime="20180716 16:00:41.715"></status>
+</kw>
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>pkill -15 run</arg>
+</arguments>
+<msg timestamp="20180716 16:00:41.716" level="INFO">Executing command 'pkill -15 run'.</msg>
+<msg timestamp="20180716 16:00:41.731" level="INFO">Command exited with return code 1.</msg>
+<status status="PASS" endtime="20180716 16:00:41.732" starttime="20180716 16:00:41.716"></status>
+</kw>
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_3</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:41.732" starttime="20180716 16:00:41.732"></status>
+</kw>
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>pkill -15 run</arg>
+</arguments>
+<msg timestamp="20180716 16:00:41.732" level="INFO">Executing command 'pkill -15 run'.</msg>
+<msg timestamp="20180716 16:00:41.748" level="INFO">Command exited with return code 1.</msg>
+<status status="PASS" endtime="20180716 16:00:41.748" starttime="20180716 16:00:41.732"></status>
+</kw>
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_2</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:41.749" starttime="20180716 16:00:41.748"></status>
+</kw>
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>pkill -15 run</arg>
+</arguments>
+<msg timestamp="20180716 16:00:41.750" level="INFO">Executing command 'pkill -15 run'.</msg>
+<msg timestamp="20180716 16:00:41.767" level="INFO">Command exited with return code 1.</msg>
+<status status="PASS" endtime="20180716 16:00:41.767" starttime="20180716 16:00:41.749"></status>
+</kw>
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Client_1</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:41.768" starttime="20180716 16:00:41.768"></status>
+</kw>
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>pkill -15 run</arg>
+</arguments>
+<msg timestamp="20180716 16:00:41.768" level="INFO">Executing command 'pkill -15 run'.</msg>
+<msg timestamp="20180716 16:00:41.786" level="INFO">Command exited with return code 1.</msg>
+<status status="PASS" endtime="20180716 16:00:41.787" starttime="20180716 16:00:41.768"></status>
+</kw>
+<kw name="Switch Connection" library="SSHLibrary">
+<doc>Switches the active connection by index or alias.</doc>
+<arguments>
+<arg>Server</arg>
+</arguments>
+<status status="PASS" endtime="20180716 16:00:41.788" starttime="20180716 16:00:41.787"></status>
+</kw>
+<kw name="Execute Command" library="SSHLibrary">
+<doc>Executes ``command`` on the remote machine and returns its outputs.</doc>
+<arguments>
+<arg>pkill -15 run</arg>
+</arguments>
+<msg timestamp="20180716 16:00:41.788" level="INFO">Executing command 'pkill -15 run'.</msg>
+<msg timestamp="20180716 16:00:41.802" level="INFO">Command exited with return code 1.</msg>
+<status status="PASS" endtime="20180716 16:00:41.803" starttime="20180716 16:00:41.788"></status>
+</kw>
+<kw name="Close All Connections" library="SSHLibrary">
+<doc>Closes all open connections.</doc>
+<status status="PASS" endtime="20180716 16:00:41.825" starttime="20180716 16:00:41.803"></status>
+</kw>
+<status status="PASS" endtime="20180716 16:00:41.825" starttime="20180716 16:00:41.715"></status>
+</kw>
+<doc>This example demonstrates executing commands on a remote machine
+and getting their output and the return code.
+http://robotframework.org/SSHLibrary/SSHLibrary.html#Read
+Notice how connections are handled as part of the suite setup and
+teardown. This saves some time when executing several test cases.</doc>
+<status status="FAIL" endtime="20180716 16:00:41.825" starttime="20180716 16:00:11.622"></status>
+</suite>
+<statistics>
+<total>
+<stat fail="8" pass="1">Critical Tests</stat>
+<stat fail="8" pass="1">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat fail="8" id="s1" name="SimpleAppTest" pass="1">SimpleAppTest</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
