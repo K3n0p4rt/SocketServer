@@ -11,78 +11,201 @@
 #include <mutex>
 
 std::mutex outsocks_mtx;
-std::mutex connectedSocks_mtx;
-std::vector<int> outsocks;
 int connectedSocks;
 int maxSocks;
+
+struct client {
+	int sockfd;
+	std::string name;
+	std::vector<client> friends;
+	int refs;
+
+	client(int sockfd, std::string name) : refs(0)
+	{
+		this->sockfd = sockfd;
+		this->name = name;
+	}
+	
+	//Deconstructor. 
+	//!! MAKE SURE TO ONLY CALL EXPLICITLY WHEN OUTSOCKS_MTX IS LOCKED !!
+	// ~client() {
+	// 	if (this.ref == 0) {
+	// 		for(int i = 0; i < sizeof(this->friends); i++) {
+				
+	// 			delete this->friends[i];
+
+	// 		}
+
+	// 	} else {
+	// 		this.refs--;
+	// 	}
+	// }
+
+	// inc_ref() {
+	// 	this->refs++;
+	// }
+};
+
+std::vector<client*> outsocks;
+std::vector<client*> onlinesocks;
 
 void error(char *msg) {
 	perror(msg);
 	exit(1);
 }
 
-void readAndWrite(int sockfd, int newsockfd) {
+void readAndWrite(int sockfd, client* &thisClient) {
 
 	char buffer[256];
 
 	outsocks_mtx.lock();
-	outsocks.push_back(newsockfd);
+	int newsockfd = thisClient->sockfd;
 	outsocks_mtx.unlock();
 
 	fprintf(stderr,"New client joined\n");
 
-	while (read(newsockfd, buffer, 255) > 0) {
+	// while (read(newsockfd, buffer, 18) > 0) {
 
-		printf("Here is the message: %s\n", buffer);
-		bool didWrite = false;
+	// 	printf("%s %s\n", thisClient->name.c_str(), buffer);
+	// 	bool didWrite = false;
+
+	// 	outsocks_mtx.lock();
+	// 	for (int i = 0; i < outsocks.size(); i++) {
+	// 		if (onlinesocks[i]->sockfd != newsockfd) {
+	// 			fprintf(stderr, "write\n");
+	// 			if (write(onlinesocks[i]->sockfd, 
+	// 				("%s says: %s\n" ,thisClient->name.c_str(),buffer), 
+	// 				strlen(buffer)) > 0) {
+	// 				didWrite = true;
+	// 			}
+	// 		}
+	// 	}
+	// 	outsocks_mtx.unlock();
+
+	// 	if (didWrite) {
+	// 		std::fill_n(buffer, 256, '\0');
+	// 	}
+	// }
+
+	int n;
+
+	while (1) {
+
+		bzero(buffer,256);
+
+		n = read(newsockfd,buffer,255);
+
+		if (n < 0) {
+			error("ERROR reading from socket");
+		}
+		
+		printf("Here is the message: %s\n",buffer);
 
 		outsocks_mtx.lock();
 		for (int i = 0; i < outsocks.size(); i++) {
-			if (outsocks[i] != newsockfd) {
-				fprintf(stderr, "write");
-				if (write(outsocks[i],("%s\n", buffer), 18) > 0) {
-					didWrite = true;
-				}
+			if (onlinesocks[i]->sockfd != newsockfd) {
+				fprintf(stderr, "write\n");
+				n = write(onlinesocks[i]->sockfd, 
+					("%s says: %s\n" ,thisClient->name.c_str(),buffer), 
+					strlen(buffer) > 0);
 			}
 		}
 		outsocks_mtx.unlock();
 
-		if (didWrite) {
-			std::fill_n(buffer, 256, '\0');
+		if (n < 0) {
+			error("ERROR writing to socket");
 		}
 	}
-
-	//NEED TESTING clear sock from outsock when done
-	outsocks_mtx.lock(); 
-	for (int i = 0; i < outsocks.size(); i++) {
-		if (outsocks[i] == newsockfd) {
-			outsocks.erase(outsocks.begin()+i);
-		}
-	}
-	outsocks_mtx.unlock();
 
 	return;
 }
 
+
+
 void manageClient(int sockfd, int newsockfd) {
-	//TODO impliment Client Management where: 
-	//		if connectedSocks > maxSocks close connection
-	//		if connectedSocks <= maxSocks readAndWrite
 
-	connectedSocks_mtx.lock();
-	connectedSocks ++;
-	bool canConnect = connectedSocks <= maxSocks;
-	connectedSocks_mtx.unlock();
+	fprintf(stderr,"Started Managing\n");
 
-	if (canConnect) {
-		readAndWrite(sockfd,newsockfd);
+	bool clientExist = false;
+	client * thisClient;
+
+	fprintf(stderr,"Instatiated Vars\n");
+
+
+	//Check weather client has logged in b4
+	outsocks_mtx.lock();
+	for(int i = 0; i < outsocks.size(); i++) {
+		if(outsocks[i]->sockfd == newsockfd) {
+			printf("Client already exist");
+			clientExist = true;
+			thisClient = outsocks[i];
+		}
+	}
+	outsocks_mtx.unlock();
+
+	fprintf(stderr,"Checked for existence\n");
+
+	//Depending on weather client exist:
+	//		Welcome client back
+	//		Create new client and enter it to outsocks
+	if(clientExist) {
+		write(newsockfd,
+			("Welcome back %s\n", thisClient->name.c_str()), 
+			13 + thisClient->name.size());
 	} else {
-		write(newsockfd,("Server full. Please try agian later"), 35);
+		if (write(newsockfd,("Please enter your name:"),23) > 0) {
+
+			char buffer[256];
+
+			if (read(newsockfd, buffer, 18) < 0) {
+				error("ERROR reading from socket");
+			}
+			
+			std::string name(buffer);
+
+			outsocks_mtx.lock();
+				thisClient = new client(newsockfd,name);
+				outsocks.push_back(thisClient);
+			outsocks_mtx.unlock();
+		}
 	}
 
-	connectedSocks_mtx.lock();
-	connectedSocks --;
-	connectedSocks_mtx.unlock();
+	fprintf(stderr,"Dealt with existence\n");
+
+	//Try to manage clients where: 
+	//		if connectedSocks > maxSocks close connection to client
+	//		if connectedSocks <= maxSocks readAndWrite client
+	outsocks_mtx.lock();
+		connectedSocks ++;
+		bool canConnect = connectedSocks <= maxSocks;
+	
+		onlinesocks.push_back(thisClient);
+		// thisClient->inc_ref();	
+	outsocks_mtx.unlock();
+
+	fprintf(stderr,"Assgined client\n");
+
+	if (canConnect) {
+		readAndWrite(sockfd,thisClient);
+	} else {
+		write(newsockfd,("Server full. Please wait..."), 27);
+		//TODO handle que of clients waiting to get in;
+	}
+
+	fprintf(stderr,"Handled client\n");
+
+	outsocks_mtx.lock();
+		connectedSocks --;
+		for(int i = 0; i < onlinesocks.size(); i++) {
+			if (onlinesocks[i]->sockfd == thisClient->sockfd) {
+				onlinesocks.erase(outsocks.begin()+i);
+
+				close(thisClient->sockfd);
+			}
+		}
+	outsocks_mtx.unlock();
+
+	fprintf(stderr,"Client left\n");	
 
 	return;
 }
