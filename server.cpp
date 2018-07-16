@@ -53,10 +53,10 @@ void readAndWrite(int sockfd, int newsockfd) {
 
 	//NEED TESTING clear sock from outsock when done
 	outsocks_mtx.lock(); 
+	cout << "Did close"
 	for (int i = 0; i < outsocks.size(); i++) {
 		if (outsocks[i] == newsockfd) {
 			outsocks.erase(outsocks.begin()+i);
-			close(newsockfd);
 		}
 	}
 	outsocks_mtx.unlock();
@@ -82,6 +82,7 @@ void manageClient(int sockfd, int newsockfd) {
 
 	connectedSocks_mtx.lock();
 	connectedSocks --;
+	close(newsockfd);
 	connectedSocks_mtx.unlock();
 
 	return;

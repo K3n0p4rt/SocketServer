@@ -30,10 +30,11 @@ void writeLoop(int sockfd) {
 	while (1) {
 		fgets(buffer, 255, stdin);
 		n = write(sockfd, buffer, strlen(buffer));
-		std::fill_n(buffer, 256, '\0');
 		if (n < 0) {
+			close(sockfd);
 			error("ERROR writing to socket",sockfd);
 		}
+		std::fill_n(buffer, 256, '\0');
 	}
 }
 
@@ -44,12 +45,13 @@ void readLoop(int sockfd) {
 
 	while (1) {
 		n = read(sockfd, buffer, 255);
-		if (strlen(buffer) > 0) {
-			printf("%s\n",buffer);
-			std::fill_n(buffer, 256, '\0');
-		}
 		if (n < 0) {
+			close(sockfd);
 			error("ERROR reading from socket",sockfd);
+		}
+		if (strlen(buffer) > 0) {
+			std::cout << buffer;
+			std::fill_n(buffer, 256, '\0');
 		}
 	}
 
@@ -76,7 +78,7 @@ int main(int argc, char *argv[]) {
 
 	server = gethostbyname(argv[1]);
 	if (server == NULL) {
-		fprintf(stderr, "ERROR: no such host\n");
+		error("ERROR: no such host");
 		exit(0);
 	}
 
