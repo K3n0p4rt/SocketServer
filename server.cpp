@@ -9,12 +9,21 @@
 #include <string.h>
 #include <sstream> 
 #include <mutex>
+#include <signal.h>
 
 std::mutex outsocks_mtx;
 std::mutex connectedSocks_mtx;
 std::vector<int> outsocks;
 int connectedSocks;
 int maxSocks;
+
+void exit_handler(int s) {
+	for(int i = 0; i < outsocks.size(); i++) {
+		std::cout << "did quit" << outsocks[i] << "\n";
+		close(outsocks[i]);
+	}
+	exit(1);
+}
 
 void error(char *msg) {
 	perror(msg);
@@ -51,9 +60,9 @@ void readAndWrite(int sockfd, int newsockfd) {
 		}
 	}
 
+
 	//NEED TESTING clear sock from outsock when done
 	outsocks_mtx.lock(); 
-	cout << "Did close"
 	for (int i = 0; i < outsocks.size(); i++) {
 		if (outsocks[i] == newsockfd) {
 			outsocks.erase(outsocks.begin()+i);
@@ -77,12 +86,14 @@ void manageClient(int sockfd, int newsockfd) {
 	if (canConnect) {
 		readAndWrite(sockfd,newsockfd);
 	} else {
-		write(newsockfd,("Server full. Please try agian later"), 35);
+		write(newsockfd,("Server full. Please try agian later\n"), 35);
 	}
 
 	connectedSocks_mtx.lock();
-	connectedSocks --;
+	std::cout << "Did close\n";
+	write(newsockfd,("Server Disconnected\n"), 19);
 	close(newsockfd);
+	connectedSocks --;
 	connectedSocks_mtx.unlock();
 
 	return;
@@ -92,6 +103,15 @@ int main(int argc, char *argv[]) {
 	int sockfd, portno;
 	struct sockaddr_in serv_addr;
 
+	//Deals with interupt signal
+	struct sigaction sigIntHandler;
+	sigIntHandler.sa_handler = exit_handler;
+	sigemptyset(&sigIntHandler.sa_mask);
+	sigIntHandler.sa_flags = 0;
+	sigaction(SIGINT, &sigIntHandler, NULL);
+
+	signal(SIGINT,exit_handler);	
+
 	maxSocks = 3;
 	connectedSocks = 0;
 	std::vector<std::thread> threads;
@@ -99,7 +119,7 @@ int main(int argc, char *argv[]) {
 	std::cout << "Starting server...\n";
 
 	if (argc < 2) {
-		fprintf(stderr, "ERROR: no port provided\n");
+		error("ERROR: no port provided\n");
 		exit(1); 
 	}
 
@@ -130,10 +150,13 @@ int main(int argc, char *argv[]) {
 		struct sockaddr_in cli_addr;
 
 		newsockfd = accept(sockfd, (struct sockaddr *) &cli_addr, &clilen);
+
 		threads.push_back(std::thread(manageClient, sockfd, newsockfd));
+		std::cout << threads.back().get_id() << " thread started\n";
 	}
 
 	for(auto &t : threads) {
+		std::cout << t.get_id() << " thread joined\n";
 		t.join();
 	}
 

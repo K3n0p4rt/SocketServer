@@ -10,6 +10,7 @@
 #include <sstream>
 #include <stdio.h>
 #include <mutex>
+#include <signal.h>
 
 void error(char *msg) {
 	perror(msg);
@@ -26,13 +27,14 @@ void writeLoop(int sockfd) {
 	
 	char buffer[256];
 	int n;
+	struct sigaction sigIntHandler;
 
 	while (1) {
 		fgets(buffer, 255, stdin);
 		n = write(sockfd, buffer, strlen(buffer));
 		if (n < 0) {
 			close(sockfd);
-			error("ERROR writing to socket",sockfd);
+			return;
 		}
 		std::fill_n(buffer, 256, '\0');
 	}
@@ -47,7 +49,7 @@ void readLoop(int sockfd) {
 		n = read(sockfd, buffer, 255);
 		if (n < 0) {
 			close(sockfd);
-			error("ERROR reading from socket",sockfd);
+			return;
 		}
 		if (strlen(buffer) > 0) {
 			std::cout << buffer;
@@ -63,6 +65,9 @@ int main(int argc, char *argv[]) {
 	int sockfd, portno, n;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
+
+	//TODO Deals with interupt signal
+
 
 	if (argc < 3) {
 		//printf(stderr, "usage %s hostname port\n", argv[0]);
@@ -99,5 +104,8 @@ int main(int argc, char *argv[]) {
 
 	readThread.join();
 	writeTread.join();
+	close(sockfd);
+	std::cout << "Exit gracfully";
+
 	return 0;
 }

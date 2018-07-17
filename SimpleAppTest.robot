@@ -102,7 +102,7 @@ Send And Recieve Message (Client_2)
 
 
 *** Keywords ***
-Open Connection And Login 
+Open Connection And Login And Compile
    Open Connection     ${HOST}            port=${SER_PORT}   alias=Server  
    Login               ${USERNAME}        ${PASSWORD}
    Write               cd /git
