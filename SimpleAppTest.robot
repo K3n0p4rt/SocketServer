@@ -6,7 +6,7 @@ Documentation          This example demonstrates executing commands on a remote 
 ...                    teardown. This saves some time when executing several test cases.
 
 Library                SSHLibrary
-Suite Setup            Open Connection And Log In
+Suite Setup            Open Connection And Log In And Compile
 Suite Teardown         Shutdown Application And Close All Connections
 
 *** Variables ***
