@@ -38,14 +38,10 @@ void error(char *msg) {
 	perror(msg);
 }
 
-void readAndWrite(int sockfd, int newsockfd) {
+void readAndWrite(int newsockfd, std::string name) {
 
 	char buffer[256];
 	int n;
-
-	outsocks_mtx.lock();
-	outsocks.push_back(newsockfd);
-	outsocks_mtx.unlock();
 
 	std::cout << "New client joined\n";
 
@@ -60,9 +56,9 @@ void readAndWrite(int sockfd, int newsockfd) {
 			std::cout << "Here is the message: " << buffer;
 			outsocks_mtx.lock();
 			for (int i = 0; i < outsocks.size(); i++) {		
-				if (outsocks[i] != newsockfd) {
+				if (outsocks[i].sockfd != newsockfd) {
 					fprintf(stderr, "write");
-					n = write(outsocks[i],("%s\n", buffer), 18);
+					n = write(outsocks[i].sockfd,("%s\n", buffer), 18);
 					if(n < 0) 
 						break;
 				}
@@ -70,36 +66,27 @@ void readAndWrite(int sockfd, int newsockfd) {
 		}
 	}
 
-
-
-	//NEED TESTING clear sock from outsock when done
-	outsocks_mtx.lock(); 
-	for (int i = 0; i < outsocks.size(); i++) {
-		if (outsocks[i] == newsockfd) {
-			outsocks.erase(outsocks.begin()+i);
-		}
-	}
-	outsocks_mtx.unlock();
-
 	return;
 }
 
-void createUser(int newsockfd, string name) {
+void createUser(int newsockfd, std::string name) {
 	
-	write(newsockfd,("Unable to find user."), 23);
-	write(newsockfd,("Creating new user."), 23);
+	write(newsockfd,("Unable to find user.\n"), 23);
+	write(newsockfd,("Creating new user.\n"), 23);
 
-	Client temp = Client(newsockfd, name)
+	Client temp = Client();
+	temp.name = name;
+	temp.sockfd = newsockfd;
 	char buffer[256];
 
 	LOOP:
-	write(newsockfd,("Please enter password:"), 1);
+	write(newsockfd,("Please enter password:\n"), 30);
 	read(newsockfd, buffer, 255);
 
 	std::string pass(buffer);
 	std::fill_n(buffer, 256, '\0');
 
-	write(newsockfd,("Please confirm your password:"), 1);
+	write(newsockfd,("Please confirm your password:\n"), 30);
 
 	read(newsockfd, buffer, 255);
 
@@ -108,9 +95,9 @@ void createUser(int newsockfd, string name) {
 
 	if (pass.compare(pass_confirm) == 0) {
 		temp.pass = pass;
-		write(newsockfd,("Password confirmed!"), 1);
+		write(newsockfd,("Password confirmed!"), 30);
 	} else {
-		write(newsockfd,("Passwords do not match, please try again."), 1);
+		write(newsockfd,("Passwords do not match, please try again."), 40);
 		goto LOOP;
 	}
 
@@ -119,12 +106,18 @@ void createUser(int newsockfd, string name) {
 	return;
 }
 
+
+//Checks weather current client exist, 
+//	then if not calls createUser, 
+//	else, adds client to onlinesocket vector.
+//	then calls readAndWrite
+//	"logoff" on return
 void logIn(int sockfd, int newsockfd) {
 
 	//Depending on weather client exist:
 	//		Welcome client back
 	//		Create new client and enter it to outsocks
-	write(newsockfd,("Please enter username:"), 23)
+	write(newsockfd,("Please enter username:\n"), 23);
 
 	char buffer[256];
 
@@ -136,33 +129,38 @@ void logIn(int sockfd, int newsockfd) {
 	bool exist = false;
 	Client thisClient;
 
-	outsocks_mtx.lock();
 	for(int i = 0; i < outsocks.size(); i++) {
-		if (outsocks[i].name = name) {
-			write(newsockfd,("Welcome back %s\n", name), 13 + name.length());
+		if (outsocks[i].name.compare(name) == 0) {
+			write(newsockfd,("Welcome back %s\n", name.c_str()), 13 + name.length());
 			exist = true;
+			outsocks[i].sockfd = newsockfd;
+			onlinesocks.push_back(outsocks[i]);
 			thisClient = outsocks[i];
-			thisClient->sockfd = newsockfd;
 		}
 	}
 
 	if (!exist) {
-		createUser(newsockfd,name);
+		outsocks_mtx.lock();
+		createUser(newsockfd, name);
+		thisClient = outsocks.back();
+		outsocks_mtx.unlock();
 	}
 
+	//TODO impliment password check
 
-	outsocks_mtx.unlock();
-	std::string name(buffer);
+	onlinesocks.push_back(thisClient);
+	readAndWrite(newsockfd, name);
 
-	outsocks_mtx.lock();
-	outsocks.push_back(client(newsockfd,name));
-	outsocks_mtx.unlock();
+	for(int i = 0; i < onlinesocks.size(); i++) {
+		if(onlinesocks[i].name.compare(name) == 0) {
+			outsocks.erase(outsocks.begin()+i);
+		}
+	}
 
-
-
-
+	return;
 }
 
+//Manages server capacity. Counts connected clients, as well as manages weather a client can join or not
 void manageClient(int sockfd, int newsockfd) {
 	//TODO impliment Client Management where: 
 	//		if connectedSocks > maxSocks close connection
@@ -195,6 +193,10 @@ int main(int argc, char *argv[]) {
 	int sockfd, portno;
 	struct sockaddr_in serv_addr;
 
+	maxSocks = 3;
+	connectedSocks = 0;
+	std::vector<std::thread> threads;
+
 	//Deals with interupt signal
 	struct sigaction sigIntHandler;
 	sigIntHandler.sa_handler = exit_handler;
@@ -204,37 +206,35 @@ int main(int argc, char *argv[]) {
 
 	signal(SIGINT,exit_handler);	
 
-	maxSocks = 3;
-	connectedSocks = 0;
-	std::vector<std::thread> threads;
-
 	std::cout << "Starting server...\n";
 
+	//Throws error if user input is insuficient
 	if (argc < 2) {
-		error("ERROR: no port provided\n");
+		//error("ERROR: no port provided\n");
 		exit(1); 
 	}
 
-	sockfd = socket(AF_INET, SOCK_STREAM, 0);
+	sockfd = socket(AF_INET, SOCK_STREAM, 0);	//create local socket
 
 	if (sockfd < 0) {
-		error("ERROR opening socket");
+		//error("ERROR opening socket");
 	}
 
+	//Bind socket to server address
 	std::fill_n((char *) &serv_addr, sizeof(serv_addr), '\0');
-
 	portno = atoi(argv[1]);
-
 	serv_addr.sin_family = AF_INET;
 	serv_addr.sin_addr.s_addr = INADDR_ANY;
 	serv_addr.sin_port = htons(portno);
 
 	if (bind(sockfd, (struct sockaddr *) &serv_addr, sizeof(serv_addr)) < 0) {
-		error("ERROR on accept");
+		//error("ERROR on accept");
 	}
 
 	listen(sockfd,maxSocks + 1);
 
+
+	//Loop for accepting clients
 	while(1) {
 
 		int newsockfd;
@@ -247,6 +247,7 @@ int main(int argc, char *argv[]) {
 		std::cout << threads.back().get_id() << " thread started\n";
 	}
 
+	//Join treads to main thread
 	for(auto &t : threads) {
 		std::cout << t.get_id() << " thread joined\n";
 		t.join();
