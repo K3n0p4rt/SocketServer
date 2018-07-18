@@ -20,7 +20,6 @@ struct Client {
 };
 
 std::mutex outsocks_mtx;
-std::mutex connectedSocks_mtx;
 std::vector<Client> outsocks;
 std::vector<Client> onlinesocks;
 int connectedSocks;
@@ -45,25 +44,27 @@ void readAndWrite(int newsockfd, std::string name) {
 
 	std::cout << "New client joined\n";
 
-	while (1) {
-		
-		std::fill_n(buffer, 256, '\0');
 
-		n = read(newsockfd,buffer, 255);
-		if(n <= 0)
-			break;
-		if(n > 0) {
-			std::cout << "Here is the message: " << buffer;
-			outsocks_mtx.lock();
-			for (int i = 0; i < outsocks.size(); i++) {		
-				if (outsocks[i].sockfd != newsockfd) {
-					fprintf(stderr, "write");
-					n = write(outsocks[i].sockfd,("%s\n", buffer), 18);
-					if(n < 0) 
-						break;
+	while (read(newsockfd, buffer, 255) > 0) {
+
+		std::cout << "Here is the message: " << buffer;
+		bool didWrite = false;
+
+		outsocks_mtx.lock();
+		for (int i = 0; i < outsocks.size(); i++) {
+			if (onlinesocks[i].sockfd != newsockfd) {
+				fprintf(stderr, "write");
+				if (write(onlinesocks[i].sockfd,("%s\n", buffer), 18) > 0) {
+					didWrite = true;
 				}
 			}
 		}
+		outsocks_mtx.unlock();
+
+		if (didWrite) {
+			std::fill_n(buffer, 256, '\0');
+		}
+
 	}
 
 	return;
@@ -75,6 +76,7 @@ void createUser(int newsockfd, std::string name) {
 	write(newsockfd,("Creating new user.\n"), 23);
 
 	Client temp = Client();
+
 	temp.name = name;
 	temp.sockfd = newsockfd;
 	char buffer[256];
@@ -117,6 +119,8 @@ void logIn(int sockfd, int newsockfd) {
 	//Depending on weather client exist:
 	//		Welcome client back
 	//		Create new client and enter it to outsocks
+	std::cout << "Prompt for name.\n";
+
 	write(newsockfd,("Please enter username:\n"), 23);
 
 	char buffer[256];
@@ -125,18 +129,21 @@ void logIn(int sockfd, int newsockfd) {
 		error("ERROR reading from socket");
 	}
 
+	std::cout << "Name read.";
+
 	std::string name(buffer);
 	bool exist = false;
 	Client thisClient;
 
 	for(int i = 0; i < outsocks.size(); i++) {
+		outsocks_mtx.lock();
 		if (outsocks[i].name.compare(name) == 0) {
 			write(newsockfd,("Welcome back %s\n", name.c_str()), 13 + name.length());
 			exist = true;
 			outsocks[i].sockfd = newsockfd;
-			onlinesocks.push_back(outsocks[i]);
 			thisClient = outsocks[i];
 		}
+		outsocks_mtx.unlock();
 	}
 
 	if (!exist) {
@@ -149,11 +156,12 @@ void logIn(int sockfd, int newsockfd) {
 	//TODO impliment password check
 
 	onlinesocks.push_back(thisClient);
+
 	readAndWrite(newsockfd, name);
 
 	for(int i = 0; i < onlinesocks.size(); i++) {
 		if(onlinesocks[i].name.compare(name) == 0) {
-			outsocks.erase(outsocks.begin()+i);
+			onlinesocks.erase(onlinesocks.begin()+i);
 		}
 	}
 
@@ -165,26 +173,29 @@ void manageClient(int sockfd, int newsockfd) {
 	//TODO impliment Client Management where: 
 	//		if connectedSocks > maxSocks close connection
 	//		if connectedSocks <= maxSocks readAndWrite
-
-
-
-	connectedSocks_mtx.lock();
+	outsocks_mtx.lock();
 	connectedSocks ++;
 	bool canConnect = connectedSocks <= maxSocks;
-	connectedSocks_mtx.unlock();
+	outsocks_mtx.unlock();
+
+	std::cout << "Checking server capacity.\n";
 
 	if (canConnect) {
+		std::cout << "CLient loging in.\n";
 		logIn(sockfd,newsockfd);
 	} else {
 		write(newsockfd,("Server full. Please try agian later\n"), 37);
 	}
 
-	connectedSocks_mtx.lock();
+	std::cout << "Client leaving.\n";
+
+	outsocks_mtx.lock();
 	std::cout << "Did close\n";
 	write(newsockfd,("Server Disconnected\n"), 19);
 	close(newsockfd);
 	connectedSocks --;
-	connectedSocks_mtx.unlock();
+	outsocks_mtx.unlock();
+
 
 	return;
 }
