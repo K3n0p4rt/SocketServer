@@ -42,63 +42,64 @@ void error(std::string msg) {
 
 
 
-void commandListner(Client client, char * buffer) {
-
-	std::string returnString;
+bool commandListener(Client client, char * buffer) {
 
 	std::string command(buffer);
 	if (command.compare(0, 1, "/") == 0) {
 		if(command.compare(1, 7, "friends") == 0) {
+			std::string returnString;
 			returnString = "Friends:\n";
 			for(int i; i < client.friends.size(); i++) {
 				returnString += client.friends[i].name;
 			}
 			write(client.sockfd, returnString.c_str(), 255);
-		}
-		else if(command.compare(1, 6, "online") == 0) {
+		} else if (command.compare(1, 6, "online") == 0) {
+			std::string returnString;
 			returnString = "Online:\n";
 			for(int i = 0; i < onlinesocks.size(); i++) {
 				std::cout << onlinesocks[i].name;
 				returnString += onlinesocks[i].name;
 			}
 			write(client.sockfd, returnString.c_str(), 255);
-		} 
-
-		else if(command.compare(1, 10, "add_friend") == 0) {
+		} else if (command.compare(1, 9, "all_users") == 0) {
+			std::string returnString;
+			returnString = "Users:\n";
+			for(int i = 0; i < outsocks.size(); i++) {
+				std::cout << outsocks[i].name;
+				returnString += outsocks[i].name;
+			}
+			write(client.sockfd, returnString.c_str(), 255);
+		} else if (command.compare(1, 11, "add_friend ") == 0) {
 			std::string name;
-			for(int i = 0; i < (strlen(buffer) - 11); i++) {
-				name.push_back(buffer[10 + i]);
+			for(int i = 0; i < (strlen(buffer) - 12); i++) {
+				name.push_back(buffer[12 + i]);
 			}
 
-			bool exist = false;
 			int i = 0;
-			Client newfriend;
 
 			for(int j = 0; j < client.friends.size(); j++) {
 				if (name.compare(client.friends[j].name) == 0) {
 					write(client.sockfd,("Already friends.\n"), 16);
-					return;
-				}
-			}
-
-			for(i; i < outsocks.size(); i++) {
-				if (name.compare(outsocks[i].name) == 0) {
-					exist = true;
-					newfriend = outsocks[i];
 					break;
 				}
 			}
 
-			if (exist) {
-				client.friends.push_back(newfriend);
-				newfriend.friends.push_back(client);
-				write(client.sockfd,("Friend added.\n"), 20);
-				//TODO send friend request;
-			} else {
-				write(client.sockfd,("No such user exist.\n"), 20);
-				return;
+			for(i; i < outsocks.size(); i++) {
+				std::cout << outsocks[i].name;
+				std::cout << name;
+				if (name.compare(outsocks[i].name) == 0) {
+					//TODO impliment friend requests
+					client.friends.push_back(outsocks[i]);
+					outsocks[i].friends.push_back(client);
+					write(client.sockfd,("Friend added.\n"), 20);	
+					goto EXIST;
+				}
 			}
-		} else if(command.compare(1, 4, "chat") == 0) {
+			
+			write(client.sockfd,("No such user exist.\n"), 20);
+
+			EXIST:;
+		} else if (command.compare(1, 4, "chat") == 0) {
 			
 			std::string name;
 			for(int i = 0; i < (strlen(buffer) - 4); i++) {
@@ -111,7 +112,7 @@ void commandListner(Client client, char * buffer) {
 			for(i; i < client.friends.size(); i++) {
 				if (name.compare(client.friends[i].name) == 0) {
 					exist = true;
-					return;
+					break;
 				}
 			}
 
@@ -119,6 +120,10 @@ void commandListner(Client client, char * buffer) {
 				client.currChat = client.friends[i].sockfd;
 			} else {
 				write(client.sockfd,("No such user exist.\n"), 20);
+			}
+		} else if (command.compare(1, 4, "exit")) {
+			for(int i = 0; i < onlinesocks.size(); i++) {
+				return false;
 			}
 		} else {
 			write(client.sockfd, ("Command does not exists\n"), 24);
@@ -133,19 +138,26 @@ void commandListner(Client client, char * buffer) {
 		}
 	}
 
-	return;
+	return true;
 }
+
+
 
 void readAndWrite(Client client) {
 
 	std::cout << "New client joined\n";
+	bool connected = true;
 
-	char buffer[256];
+	while (connected) {
 
-	while (read(client.sockfd, buffer, 255) > 0) {
+		char buffer[256];
+
+		connected = (read(client.sockfd, buffer, 255) > 0);
+		
 		outsocks_mtx.lock();
-		commandListner(client, buffer);
+		connected = connected && commandListener(client, buffer);
 		outsocks_mtx.unlock();
+		
 		buffer[0] = 0;
 	}
 
@@ -162,6 +174,8 @@ void createUser(int newsockfd, std::string name) {
 		temp.name = name;
 		temp.sockfd = newsockfd;
 		char buffer[256];
+		std::fill_n(buffer, 256, '\0');
+
 
 		LOOP:
 		write(newsockfd,("Please enter new password:\n"), 27);
@@ -180,7 +194,7 @@ void createUser(int newsockfd, std::string name) {
 			temp.pass = pass;
 			write(newsockfd,("Password confirmed!\n"), 20);
 		} else {
-			write(newsockfd,("Passwords do not match, please try again.\n"), 40);
+			write(newsockfd,("Passwords do not match, please try again.\n"), 42);
 			goto LOOP;
 		}
 
