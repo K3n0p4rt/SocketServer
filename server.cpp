@@ -121,7 +121,7 @@ bool commandListener(Client client, char * buffer) {
 			} else {
 				write(client.sockfd,("No such user exist.\n"), 20);
 			}
-		} else if (command.compare(1, 4, "exit")) {
+		} else if (command.compare(1, 4, "exit") == 0) {
 			for(int i = 0; i < onlinesocks.size(); i++) {
 				return false;
 			}
@@ -197,8 +197,9 @@ void createUser(int newsockfd, std::string name) {
 			write(newsockfd,("Passwords do not match, please try again.\n"), 42);
 			goto LOOP;
 		}
-
+		outsocks_mtx.lock();
 		outsocks.push_back(temp);
+		outsocks_mtx.unlock();
 
 	} catch (int e){
 		error("ERROR creating user");
@@ -246,10 +247,8 @@ void logIn(int newsockfd) {
 		}
 
 		if (!exist) {
-			outsocks_mtx.lock();
 			createUser(newsockfd, name);
 			thisClient = outsocks.back();
-			outsocks_mtx.unlock();
 		}
 
 		write(newsockfd, ("Please enter password:\n"), 23);
@@ -264,7 +263,7 @@ void logIn(int newsockfd) {
 
 		write(newsockfd,("Connected to chatroom!\n"), 23);
 		onlinesocks.push_back(thisClient);
-		readAndWrite(thisClient);
+		readAndWrite(onlinesocks.back());
 		for(int i = 0; i < onlinesocks.size(); i++) {
 			if(onlinesocks[i].name.compare(name) == 0) {
 				std::cout << name << " going offline\n";

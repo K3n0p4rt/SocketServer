@@ -15,7 +15,7 @@ ${USERNAME}            root
 ${PASSWORD}            screencast
 ${HOST}                localhost
 ${SER_PORT}            4000
-${VIR_PORT}            0001
+${VIR_PORT}            2391
 ${IP_ADD}              172.17.0.5
 
 *** Test Cases ***
@@ -53,8 +53,8 @@ Single Client Write And Server Read
 
 Client Logoff and Login (Proper)
   Switch Connection     Client_1
-  Write 				  /exit
-  Write 				  ./run_client ${IP_ADD} ${VIR_PORT}
+  Write 				      /exit
+  Write 				      ./run_client ${IP_ADD} ${VIR_PORT}
   Read Until			    enter username:
   Write 				      John
   Read Until			    Please enter password:
@@ -91,10 +91,10 @@ Send And Recieve Message
   Switch Connection  Client_3
   Write              howdy!
   Switch Connection  Client_2
-  ${output}=         Read Until         !
+  ${output}=         Read Until         dy!
   Should End With    ${output}          howdy!
   Switch Connection  Client_1
-  ${output}=         Read Until         !
+  ${output}=         Read Until         dy!
   Should End With    ${output}          howdy!
 
   Switch Connection  Client_1

@@ -12,6 +12,8 @@
 #include <mutex>
 #include <signal.h>
 
+bool connected;
+
 void error(std::string msg) {
 	perror(msg.c_str());
 	exit(0);
@@ -27,23 +29,27 @@ void writeLoop(int sockfd) {
 	
 	int n;
 
-	while (1) {
+	while (connected) {
 		char buffer[256];
 		std::fill_n(buffer, 256, '\0');
 		fgets(buffer, 255, stdin);
 		n = write(sockfd, buffer, strlen(buffer));
-		if (n < 0) {
+		std::string temp(buffer);
+
+		if(n < 0 || (temp.compare(0, 5, "/exit") == 0)) {
 			close(sockfd);
 			return;
 		}
 	}
+
+	return;
 }
 
 void readLoop(int sockfd) {
 
 	int n;
 
-	while (1) {
+	while (connected) {
 		char buffer[256];
 		std::fill_n(buffer, 256, '\0');
 		n = read(sockfd, buffer, 255);
@@ -56,7 +62,7 @@ void readLoop(int sockfd) {
 		}
 	}
 
-	
+	return;
 }
 
 
@@ -65,6 +71,7 @@ int main(int argc, char *argv[]) {
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
 
+	connected = true;
 	//TODO Deals with interupt signal
 
 
@@ -103,8 +110,8 @@ int main(int argc, char *argv[]) {
 
 	readThread.join();
 	writeTread.join();
-	close(sockfd);
-	std::cout << "Exit gracfully";
+
+	std::cout << "Exit gracfully\n";
 
 	return 0;
 }
