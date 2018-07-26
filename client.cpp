@@ -37,7 +37,7 @@ void writeLoop(int sockfd) {
 		std::string temp(buffer);
 
 		if(n < 0 || (temp.compare(0, 5, "/exit") == 0)) {
-			close(sockfd);
+			connected = false;
 			return;
 		}
 	}
@@ -54,7 +54,7 @@ void readLoop(int sockfd) {
 		std::fill_n(buffer, 256, '\0');
 		n = read(sockfd, buffer, 255);
 		if (n < 0) {
-			close(sockfd);
+			connected = false;
 			return;
 		}
 		if (strlen(buffer) > 0) {
@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
 	struct hostent *server;
 
 	connected = true;
+
 	//TODO Deals with interupt signal
 
 
@@ -110,6 +111,8 @@ int main(int argc, char *argv[]) {
 
 	readThread.join();
 	writeTread.join();
+
+	close(sockfd);
 
 	std::cout << "Exit gracfully\n";
 

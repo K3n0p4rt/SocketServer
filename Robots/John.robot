@@ -15,7 +15,7 @@ ${USERNAME}            root
 ${PASSWORD}            screencast
 ${HOST}                localhost
 ${SER_PORT}            4000
-${VIR_PORT}            2391
+${VIR_PORT}            6969
 ${IP_ADD}              172.17.0.5
 
 *** Test Cases ***
@@ -109,24 +109,33 @@ Send And Recieve Message
 Using Online And All_Users Commands
   Switch Connection   Client_1
   Write               /online
-  ${output}           Read                delay=0.5s
+  ${output}           Read                delay=0.2s
   Should Contain      ${output}           John
   Should Contain      ${output}           Jan
   Should Contain      ${output}           Jess
   Write               /all_users
-  ${output}           Read                delay=0.5s
+  ${output}           Read                delay=0.2s
   Should Contain      ${output}           John
   Should Contain      ${output}           Jan
   Should Contain      ${output}           Jess
   Write               /exit
   Switch Connection   Client_2
   Write               /online
-  ${output}           Read                delay=0.5s
+  ${output}           Read                delay=0.2s
   Should Not Contain  ${output}           John
   Switch Connection   Client_1
   Write               ./run_client ${IP_ADD} ${VIR_PORT} 
   Write               John
   Write               waffles
+
+Using Add_Friend and Freind Commands
+  Switch Connection   Client_1
+  Write               /friends
+  ${output}           Read                 delay=0.2s
+  Should Not Contain  ${output}           John
+  Should Not Contain  ${output}           Jan
+  Should Not ontain   ${output}           Jess
+  Write               /add_friend Jess
 
 
 *** Keywords ***

@@ -5,31 +5,34 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <stdio.h>
+#include <string>
 #include <string.h>
 #include <sstream> 
 #include <mutex>
 #include <signal.h>
+#include <memory>
+#include <cstdio>
 
 struct Client {
 	std::string name;
 	std::string pass;
 	int sockfd;
-	std::vector<Client> friends;
+	std::vector<std::shared_ptr<Client>> friends;
 	int currChat;
 };
 
 std::mutex outsocks_mtx;
-std::vector<Client> outsocks;
-std::vector<Client> onlinesocks;
+std::vector<std::shared_ptr<Client>> outsocks;
+std::vector<std::shared_ptr<Client>> onlinesocks;
 int connectedSocks;
 int maxSocks;
 int sockfd;
+std::FILE* error_log;
 
 void exit_handler(int s) {
 	for(int i = 0; i < onlinesocks.size(); i++) {
-		std::cout << "Did quit " << onlinesocks[i].name << "\n";
-		close(onlinesocks[i].sockfd);
+		std::cout << "Did quit " << onlinesocks[i]->name << "\n";
+		close(onlinesocks[i]->sockfd);
 		//TODO: clear onlinesocks
 	}
 	close(sockfd);
@@ -41,34 +44,34 @@ void error(std::string msg) {
 }
 
 
-
-bool commandListener(Client client, char * buffer) {
+bool commandListener (std::shared_ptr<Client> client, char * buffer) {
 
 	std::string command(buffer);
 	if (command.compare(0, 1, "/") == 0) {
 		if(command.compare(1, 7, "friends") == 0) {
 			std::string returnString;
 			returnString = "Friends:\n";
-			for(int i; i < client.friends.size(); i++) {
-				returnString += client.friends[i].name;
+			for(int i = 0; i < client->friends.size(); i++) {
+				std::cout << client->friends[i]->name;
+				returnString += client->friends[i]->name;
 			}
-			write(client.sockfd, returnString.c_str(), 255);
+			write(client->sockfd, returnString.c_str(), 255);
 		} else if (command.compare(1, 6, "online") == 0) {
 			std::string returnString;
 			returnString = "Online:\n";
 			for(int i = 0; i < onlinesocks.size(); i++) {
-				std::cout << onlinesocks[i].name;
-				returnString += onlinesocks[i].name;
+				std::cout << onlinesocks[i]->name;
+				returnString += onlinesocks[i]->name;
 			}
-			write(client.sockfd, returnString.c_str(), 255);
+			write(client->sockfd, returnString.c_str(), 255);
 		} else if (command.compare(1, 9, "all_users") == 0) {
 			std::string returnString;
 			returnString = "Users:\n";
 			for(int i = 0; i < outsocks.size(); i++) {
-				std::cout << outsocks[i].name;
-				returnString += outsocks[i].name;
+				std::cout << outsocks[i]->name;
+				returnString += outsocks[i]->name;
 			}
-			write(client.sockfd, returnString.c_str(), 255);
+			write(client->sockfd, returnString.c_str(), 255);
 		} else if (command.compare(1, 11, "add_friend ") == 0) {
 			std::string name;
 			for(int i = 0; i < (strlen(buffer) - 12); i++) {
@@ -77,64 +80,85 @@ bool commandListener(Client client, char * buffer) {
 
 			int i = 0;
 
-			for(int j = 0; j < client.friends.size(); j++) {
-				if (name.compare(client.friends[j].name) == 0) {
-					write(client.sockfd,("Already friends.\n"), 16);
+			for(int j = 0; j < client->friends.size(); j++) {
+				if (name.compare(0, name.size(), client->friends[j]->name) == 0) {
+					write(client->sockfd,("Already friends.\n"), 16);
 					break;
 				}
 			}
 
 			for(i; i < outsocks.size(); i++) {
-				std::cout << outsocks[i].name;
+				std::cout << outsocks[i]->name;
 				std::cout << name;
-				if (name.compare(outsocks[i].name) == 0) {
+				if (name.compare(0, name.size(), outsocks[i]->name) == 0) {
 					//TODO impliment friend requests
-					client.friends.push_back(outsocks[i]);
-					outsocks[i].friends.push_back(client);
-					write(client.sockfd,("Friend added.\n"), 20);	
+					std::shared_ptr<Client> temp = outsocks[i];
+					std::shared_ptr<Client> temp2 = client;
+					client->friends.push_back(temp);
+					outsocks[i]->friends.push_back(temp2);
+					write(client->sockfd,("Friend added.\n"), 20);	
 					goto EXIST;
 				}
 			}
 			
-			write(client.sockfd,("No such user exist.\n"), 20);
+			write(client->sockfd,("No such user exist.\n"), 20);
 
 			EXIST:;
 		} else if (command.compare(1, 4, "chat") == 0) {
 			
 			std::string name;
-			for(int i = 0; i < (strlen(buffer) - 4); i++) {
-				name.push_back(buffer[4 + i]);
+			for(int i = 0; i < (strlen(buffer) - 6); i++) {
+				name.push_back(buffer[6 + i]);
 			}
 
 			bool exist = false;
 			int i = 0;
 
-			for(i; i < client.friends.size(); i++) {
-				if (name.compare(client.friends[i].name) == 0) {
+			for(i; i < client->friends.size(); i++) {
+				std::cout << client->friends[i]->name;
+				std::cout << name;
+				if (name.compare(0, name.size(), client->friends[i]->name) == 0) {
 					exist = true;
 					break;
 				}
 			}
 
 			if (exist) {			
-				client.currChat = client.friends[i].sockfd;
+				client->currChat = client->friends[i]->sockfd;
+				client->friends[i]->currChat = client->sockfd;
 			} else {
-				write(client.sockfd,("No such user exist.\n"), 20);
-			}
+				write(client->sockfd,("No such user exist.\n"), 20);
+			} 
 		} else if (command.compare(1, 4, "exit") == 0) {
 			for(int i = 0; i < onlinesocks.size(); i++) {
 				return false;
 			}
 		} else {
-			write(client.sockfd, ("Command does not exists\n"), 24);
+			write(client->sockfd, ("Command does not exists\n"), 24);
 		}
 	} else {
 		std::cout << "Here is the message: " << buffer;
-		for (int i = 0; i < outsocks.size(); i++) {
-			if (onlinesocks[i].sockfd != client.sockfd) {
-				fprintf(stderr, "write\n");
-				write(onlinesocks[i].sockfd, buffer, strlen(buffer));
-			}
+		std::string temp(buffer);
+
+		switch(client->currChat) {
+			case -1:
+				temp = client->name + "(public): " + temp;
+
+				for (int i = 0; i < outsocks.size(); i++) {
+					if (onlinesocks[i]->sockfd != client->sockfd) {
+						fprintf(stderr, "write\n");
+						int j = strlen(temp.c_str());
+						write(onlinesocks[i]->sockfd, 
+							temp.c_str(), j);
+					}
+				}
+				break;
+
+			default:
+				temp = client->name + "(private): " + temp;
+				int k = strlen(temp.c_str());
+				write(client->currChat, temp.c_str(), k);
+				break;
 		}
 	}
 
@@ -143,22 +167,19 @@ bool commandListener(Client client, char * buffer) {
 
 
 
-void readAndWrite(Client client) {
+void readAndWrite(std::shared_ptr<Client> client) {
 
 	std::cout << "New client joined\n";
 	bool connected = true;
 
 	while (connected) {
-
 		char buffer[256];
+		std::fill_n(buffer, 256, '\0');
 
-		connected = (read(client.sockfd, buffer, 255) > 0);
-		
+		connected = (read(client->sockfd, buffer, 255) > 0);
 		outsocks_mtx.lock();
 		connected = connected && commandListener(client, buffer);
 		outsocks_mtx.unlock();
-		
-		buffer[0] = 0;
 	}
 
 	return;
@@ -169,29 +190,28 @@ void createUser(int newsockfd, std::string name) {
 		write(newsockfd,("Unable to find user.\n"), 21);
 		write(newsockfd,("Creating new user.\n"), 19);
 
-		Client temp = Client();
+		std::shared_ptr<Client> temp(new Client());
 
-		temp.name = name;
-		temp.sockfd = newsockfd;
+		temp->name = name;
+		temp->sockfd = newsockfd;
 		char buffer[256];
 		std::fill_n(buffer, 256, '\0');
 
-
 		LOOP:
-		write(newsockfd,("Please enter new password:\n"), 27);
+		write(newsockfd, ("Please enter new password:\n"), 27);
 		read(newsockfd, buffer, 255);
 		std::string pass(buffer);
 
 		std::fill_n(buffer, 256, '\0');
 
-		write(newsockfd,("Please confirm your password:\n"), 30);
+		write(newsockfd, ("Please confirm your password:\n"), 30);
 		read(newsockfd, buffer, 255);
 		std::string pass_confirm(buffer);
 		
 		std::fill_n(buffer, 256, '\0');
 
 		if (pass.compare(pass_confirm) == 0) {
-			temp.pass = pass;
+			temp->pass = pass;
 			write(newsockfd,("Password confirmed!\n"), 20);
 		} else {
 			write(newsockfd,("Passwords do not match, please try again.\n"), 42);
@@ -221,7 +241,7 @@ void logIn(int newsockfd) {
 	//		Welcome client back
 	//		Create new client and enter it to outsocks
 	std::cout << "Prompt for name.\n";
-	Client thisClient;
+	std::shared_ptr<Client> tempClient;
 
 	try {
 		write(newsockfd,("Please enter username:\n"), 23);
@@ -234,13 +254,14 @@ void logIn(int newsockfd) {
 		std::string name(buffer);
 		std::fill_n(buffer, 256, '\0');
 		bool exist = false;
+		std::shared_ptr<Client> thisClient;
 
 		for(int i = 0; i < outsocks.size(); i++) {
 			outsocks_mtx.lock();
-			if (outsocks[i].name.compare(name) == 0) {
+			if (outsocks[i]->name.compare(name) == 0) {
 				write(newsockfd,("Welcome back!\n"), 14);
 				exist = true;
-				outsocks[i].sockfd = newsockfd;
+				outsocks[i]->sockfd = newsockfd;
 				thisClient = outsocks[i];
 			}
 			outsocks_mtx.unlock();
@@ -256,16 +277,17 @@ void logIn(int newsockfd) {
 		read(newsockfd, buffer, 255);
 		std::string pass(buffer);
 		std::fill_n(buffer, 256, '\0');
-		if(pass.compare(thisClient.pass) != 0) {
+		if(pass.compare(thisClient->pass) != 0) {
 			write(newsockfd, ("Password incorrect. Please retry.\n"), 34);
 			goto PASS_LOOP;
 		}
 
 		write(newsockfd,("Connected to chatroom!\n"), 23);
+		thisClient->currChat = -1;
 		onlinesocks.push_back(thisClient);
 		readAndWrite(onlinesocks.back());
 		for(int i = 0; i < onlinesocks.size(); i++) {
-			if(onlinesocks[i].name.compare(name) == 0) {
+			if(onlinesocks[i]->name.compare(name) == 0) {
 				std::cout << name << " going offline\n";
 				onlinesocks.erase(onlinesocks.begin()+i);
 			}
@@ -299,12 +321,10 @@ void manageClient(int newsockfd) {
 
 	std::cout << "Client leaving.\n";
 
-	outsocks_mtx.lock();
 	std::cout << "Did close\n";
 	write(newsockfd,("Server Disconnected\n"), 20);
 	close(newsockfd);
 	connectedSocks --;
-	outsocks_mtx.unlock();
 
 	return;
 }
@@ -328,6 +348,9 @@ int main(int argc, char *argv[]) {
 	maxSocks = 3;
 	connectedSocks = 0;
 	std::vector<std::thread> threads;
+
+	error_log = std::fopen("ERROR_LOG.txt", "w");
+	std::fflush(error_log);
 
 	//Deals with interupt signal
 	struct sigaction sigIntHandler;
