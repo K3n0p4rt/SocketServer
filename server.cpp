@@ -126,6 +126,12 @@ bool commandListener (std::shared_ptr<Client> client, char * buffer) {
 			if (exist) {			
 				client->currChat = client->friends[i]->sockfd;
 				client->friends[i]->currChat = client->sockfd;
+				std::string temp = "Now chatting with " + client->friends[i]->name;
+				write(client->sockfd,(temp.c_str()), 
+					18 + client->friends[i]->name.size());
+				temp = "Now chatting with " + client->name;
+				write(client->sockfd,(temp.c_str()), 
+					18 + client->name.size());
 			} else {
 				write(client->sockfd,("No such user exist.\n"), 20);
 			} 

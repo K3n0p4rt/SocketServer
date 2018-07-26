@@ -87,7 +87,7 @@ Client Join At Max Server Capacity
   Should End With    ${output}          Server full. Please try agian later
   Execute Command    pkill -15
 
-Send And Recieve Message
+Send And Recieve Message (Public)
   Switch Connection  Client_3
   Write              howdy!
   Switch Connection  Client_2
@@ -123,20 +123,42 @@ Using Online And All_Users Commands
   Write               /online
   ${output}           Read                delay=0.2s
   Should Not Contain  ${output}           John
-  Switch Connection   Client_1
-  Write               ./run_client ${IP_ADD} ${VIR_PORT} 
-  Write               John
-  Write               waffles
+  Write               /all_users
+  ${output}           Read                delay=0.2s
+  Should Contain      ${output}           John
 
 Using Add_Friend and Freind Commands
   Switch Connection   Client_1
+  Write               ./run_client ${IP_ADD} ${VIR_PORT} 
+  Read Until          username
+  Write               John
+  Read Until          password
+  Write               waffles
   Write               /friends
-  ${output}           Read                 delay=0.2s
+  ${output}           Read                delay=0.2s
   Should Not Contain  ${output}           John
   Should Not Contain  ${output}           Jan
-  Should Not ontain   ${output}           Jess
+  Should Not Contain  ${output}           Jess
   Write               /add_friend Jess
+  Write               /friends
+  ${output}           Read                delay=0.2s
+  Should Contain      ${output}           Jess
 
+Send And Recieve Message (Private)
+  Switch Connection   Client_1
+  Write               /chat Jess
+  Read Until          Now chatting with Jess        
+  Write               Hi from private
+  Switch Connection   Client_2
+  ${output}=          Read               delay=0.2
+  Should Contain      ${output}          private
+  Switch Connection   Client_3
+  ${output}=          Read               delay=0.2
+  Should Not Contain  ${output}          private
+  Write               Hi from public
+  Switch Connection   Client_2
+  ${output}=          Read               delay=0.2
+  Should Contain      ${output}          public
 
 *** Keywords ***
 Open Connection And Login
@@ -179,16 +201,16 @@ First Time Login
 
 Shutdown Application And Close All Connections
    Switch Connection   Client_4
-   Execute Command     pkill -15 run          
+   Write               /exit         
 
    Switch Connection   Client_3
-   Execute Command     pkill -15 run  
+   Write               /exit   
   
    Switch Connection   Client_2
-   Execute Command     pkill -15 run  
+   Write               /exit  
   
    Switch Connection   Client_1
-   Execute Command     pkill -15 run  
+   Write               /exit  
   
    Switch Connection   Server
    Execute Command     pkill -15 run  
